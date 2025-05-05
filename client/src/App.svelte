@@ -1,3 +1,4 @@
+<!-- REMEMBER TO RUN NPM RUN BUILD WHEN YOU MAKE CHANGES TO THIS FILE. -->
 <script>
 	export let name;
 	let rand = -1;
@@ -8,6 +9,12 @@
 		.then(d => (rand = d));
 	}
 </script>
+
+<style>
+	h1 {
+		color: #ff3e00;
+	}
+</style>
 
 <h1>Random playlist: {rand}</h1>
 <button on:click={getRand}>Get a random playlist name from me</button>
