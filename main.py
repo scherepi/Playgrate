@@ -41,10 +41,12 @@ def base():
 def home(path):
     return send_from_directory('client/public', path)
 
-@app.route("/random")
+@app.route("/api/random")
 def random_playlist():
     playlists = sp.user_playlists('wildertunes')
     return playlists['items'][random.randint(0, 10)]["name"]
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
