@@ -1,6 +1,5 @@
 <!-- REMEMBER TO RUN NPM RUN BUILD WHEN YOU MAKE CHANGES TO THIS FILE. -->
 <script>
-	export let name;
 	let rand = -1;
 
 	function getRand() {
