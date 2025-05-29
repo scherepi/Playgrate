@@ -41,41 +41,18 @@ sp = spotipy.Spotify(auth_manager=authm)
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
+CLIENT_PUBLIC = os.path.join(os.path.dirname(__file__), "client", "build")
+
 # Path for main Svelte page
-@app.route("/")
-def base():
-    return send_from_directory('client/public', 'index.html')
-
-
+@app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
-def home(path):
-    return send_from_directory('client/public', path)
+def catch_all(path):
+    full_path = os.path.join(CLIENT_PUBLIC, path)
+    print(f"Requested path: {path}, full_path: {full_path}, isfile: {os.path.isfile(full_path)}")
+    if path and os.path.isfile(full_path):
+        return send_from_directory(CLIENT_PUBLIC, path)
+    return send_from_directory(CLIENT_PUBLIC, "index.html")
 
-#@app.route("/api/random")
-#def random_playlist():
-#    playlists = sp.user_playlists('wildertunes')
-#    return playlists['items'][random.randint(0, 10)]["name"]
-
-@app.route('/spotify-login')
-def spotify_login():
-    
-
-@app.route("/callback")
-def callback():
-    if 'error' in request.args:
-        return jsonify({"error": request.args['error']})
-    
-    if 'code' in request.args:
-        payload = {
-            "grant_type": "authorization_code",
-            "code": request.args['code'],
-            "redirect_uri": redirect_uri,
-            "client_id": client_id,
-            "client_secret": client_secret
-        }
-
-        response = requests.post(TOKEN_URL, data=payload)
-        token_info = response.json()
 
 if __name__ == "__main__":
     app.run(debug=True)
