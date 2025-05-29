@@ -50,7 +50,7 @@ def scrapePlaylist(playlistURL):
         }
         track_number += 1
     # Now we can return the playlist dictionary
-    return playlist
+    return json.dumps(playlist)
 
 # test code
 # print(scrapePlaylist("https://music.apple.com/ca/playlist/scrobbleradio-mix/pl.u-dkelCypyBM"))

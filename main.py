@@ -4,7 +4,7 @@ import spotipy.util as util
 import spotipy.oauth2
 import os
 import requests
-import subprocess
+import threading
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyClientCredentials
 from socket import gethostname
@@ -16,6 +16,7 @@ from apple_music import scrapePlaylist as scrapeAppleMusicPlaylist
 load_dotenv()
 client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
+
 
 # Set up Spotify auth variables
 HOST = gethostname()
@@ -41,9 +42,25 @@ sp = spotipy.Spotify(auth_manager=authm)
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
+# Verify directory structures
 CLIENT_PUBLIC = os.path.join(os.path.dirname(__file__), "client", "build")
 
-# Path for main Svelte page
+AM_DIRECTORY = os.path.join(os.path.dirname(__file__), "data", "scrapes", "apple_music")
+
+if not os.path.isdir(AM_DIRECTORY):
+    os.makedirs(AM_DIRECTORY, exist_ok=True)
+
+@app.route("/start-scrape/apple-music/<playlistURL>")
+def returnAppleMusicPlaylist(playlistURL):
+    def run_scrape():
+        with open(os.path.join(AM_DIRECTORY, playlistURL), "w") as destination_file:
+            destination_file.write(scrapeAppleMusicPlaylist(playlistURL))
+
+    t = threading.Thread(target=run_scrape)
+    t.start()
+    return jsonify({"status": "started"}), 202
+
+# Path for main SvelteKit stuff
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def catch_all(path):
