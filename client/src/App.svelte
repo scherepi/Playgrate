@@ -1,7 +1,8 @@
 <!-- REMEMBER TO RUN NPM RUN BUILD WHEN YOU MAKE CHANGES TO THIS FILE. -->
 <script>
-	let rand = -1;
+	import { LogoCard } from "./components/LogoCard.svelte"
 
+	// Example code for executing a server-side function
 	function getRand() {
 		fetch("./api/random")
 		.then(d => d.text())
@@ -9,18 +10,14 @@
 	}
 
 	function login() {
-		fetch
+		fetch("./spotify-login")
 	}
 </script>
 
 <style>
-	h1 {
-		color: #ff3e00;
-	}
 </style>
 
 <LogoCard />
 
-<h1>Random playlist: {rand}</h1>
-<button on:click={getRand}>Get a random playlist name from me</button>
+<a href="/spotify-login">Log into Spotify:</a>
 
