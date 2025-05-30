@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
 from socket import gethostname
 
-# load custom modules
+# load custom modules (for scraping the various music services)
 from apple_music import scrapePlaylist as scrapeAppleMusicPlaylist
 
 # Load environmental variables
@@ -20,18 +20,22 @@ client_secret = os.getenv("CLIENT_SECRET")
 
 # Set up Spotify auth variables
 HOST = "127.0.0.1" #TODO: change this to proper IP
-scope = "playlist-modify-private"
-redirect_uri = f"https://{HOST}:5000/callback"
+scope = "playlist-modify-private" # This scope lets us create and modify playlists
+redirect_uri = f"http://{HOST}:5000/callback" # This'll be really annoying to modify when I ship... whatever I'll worry about it later
 
 # Create object to manage Spotify authorization with OAuth2
 oauth_manager = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY")
+app.secret_key = os.getenv("FLASK_SECRET_KEY") # Storing it in an env variable just in case? I don't know how secure it really has to be
 
-# Verify directory structures
+# Verify directory structures for data
 CLIENT_PUBLIC = os.path.join(os.path.dirname(__file__), "client", "build")
+if not os.path.isdir(CLIENT_PUBLIC):
+    print("ERROR: SvelteKit files not in place! You need to run npm run build, or something else has gone horribly wrong.")
+    raise FileNotFoundError
 
+# This directory will hold Apple Music scrape data
 AM_DIRECTORY = os.path.join(os.path.dirname(__file__), "data", "scrapes", "apple_music")
 
 if not os.path.isdir(AM_DIRECTORY):
@@ -40,8 +44,11 @@ if not os.path.isdir(AM_DIRECTORY):
 @app.route("/start-scrape/apple-music/<playlistURL>")
 def returnAppleMusicPlaylist(playlistURL):
     def run_scrape():
-        with open(os.path.join(AM_DIRECTORY, playlistURL), "w") as destination_file:
-            destination_file.write(scrapeAppleMusicPlaylist(playlistURL))
+        scrapeTuple = scrapeAppleMusicPlaylist(playlistURL)
+        playlist_id = scrapeTuple[0]
+        playlist_json = scrapeTuple[1]
+        with open(os.path.join(AM_DIRECTORY, playlist_id + ".json"), "w") as destination_file:
+            destination_file.write(playlist_json)
 
     t = threading.Thread(target=run_scrape)
     t.start()
@@ -56,8 +63,17 @@ def spotifylogin():
 @app.route("/callback")
 def callback():
     token_info = oauth_manager.get_access_token(request.args['code'])
-    session['token_info'] = oauth_manager.get_cached_token()
-    return redirect("/generatePlaylist/" + session['playlist_id'])
+    session['token_info'] = token_info
+    print("Set token, reading: " + session.get("token_info", None)["access_token"])
+    return "Token should be set!"
+
+@app.route("/generateAM/<playlistID>")
+def generatePlaylistFromAppleMusicData(playlistID):
+    token_info = session.get("token_info", None)
+    if not token_info:
+        return redirect("/spotify-login")
+    
+
 
 # Path for main SvelteKit stuff
 @app.route("/", defaults={"path": ""})
