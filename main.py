@@ -41,8 +41,12 @@ AM_DIRECTORY = os.path.join(os.path.dirname(__file__), "data", "scrapes", "apple
 if not os.path.isdir(AM_DIRECTORY):
     os.makedirs(AM_DIRECTORY, exist_ok=True)
 
-@app.route("/start-scrape/apple-music/<playlistURL>")
-def returnAppleMusicPlaylist(playlistURL):
+@app.route("/start-scrape/apple-music/")
+def returnAppleMusicPlaylist():
+    playlistURL = request.args.get('playlistURL')
+    playlist_id = playlistURL.split("/")[-1]
+    print("Got playlist id " + playlist_id)
+    session['scraped_playlist_id'] = playlist_id
     def run_scrape():
         scrapeTuple = scrapeAppleMusicPlaylist(playlistURL)
         playlist_id = scrapeTuple[0]
