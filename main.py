@@ -24,7 +24,7 @@ scope = "playlist-modify-private"
 redirect_uri = f"https://{HOST}:5000/callback"
 
 # Create object to manage Spotify authorization with OAuth2
-authm = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
+oauth_manager = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
@@ -46,6 +46,18 @@ def returnAppleMusicPlaylist(playlistURL):
     t = threading.Thread(target=run_scrape)
     t.start()
     return jsonify({"status": "started"}), 202
+
+@app.route("/spotify-login")
+def spotifylogin():
+    auth_url = oauth_manager.get_authorize_url()
+    session["token_info"] = oauth_manager.get_cached_token()
+    return redirect(auth_url)
+
+@app.route("/callback")
+def callback():
+    token_info = oauth_manager.get_access_token(request.args['code'])
+    session['token_info'] = oauth_manager.get_cached_token()
+    return redirect("/generatePlaylist/" + session['playlist_id'])
 
 # Path for main SvelteKit stuff
 @app.route("/", defaults={"path": ""})
