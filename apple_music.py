@@ -24,6 +24,7 @@ def scrapePlaylist(playlistURL):
     # Now we've got our BeautifulSoup object, we can parse the playlist out.
     # First, let's get the name and song count for checking purposes.
     playlist_name = soup.find(attrs={"name": "apple:title"})['content']
+    playlist_id = soup.find(attrs={"name": "apple:content_id"})['content']
     song_count = int(soup.find(property="music:song_count")['content'])
     # Wrangle up the URL for the 400x400 image from the source element (gotta do some manual parsing)
     playlist_image_url = soup.find("img", alt=playlist_name).previous_sibling.previous_sibling['srcset'].split(",")[3].split(" ")[0]
@@ -49,8 +50,8 @@ def scrapePlaylist(playlistURL):
             "album": album_name,
         }
         track_number += 1
-    # Now we can return the playlist dictionary
-    return json.dumps(playlist)
+    # Now we can return the playlist dictionary (with the id separate for allocation)
+    return (playlist_id, json.dumps(playlist))
 
 # test code
 # print(scrapePlaylist("https://music.apple.com/ca/playlist/scrobbleradio-mix/pl.u-dkelCypyBM"))
