@@ -5,7 +5,7 @@ import json
 
 # written by j. schere in may of 2025, with a whole lot of mate and a little bit of love
 
-# also shoutout to the random dude on Reddit whose kinda trash playlist i used as sample data
+# also shoutout to the random dude on Reddit whose kinda laylist i used as sample data
 # https://music.apple.com/ca/playlist/scrobbleradio-mix/pl.u-dkelCypyBM
 
 # this module is for scraping playlists from Apple Music!

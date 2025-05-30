@@ -56,7 +56,12 @@ def returnAppleMusicPlaylist():
 
     t = threading.Thread(target=run_scrape)
     t.start()
+    print("Stored playlist id " + session.get("scraped_playlist_id"))
     return jsonify({"status": "started"}), 202
+
+@app.route("/test-session")
+def test_session():
+    return session.get("scraped_playlist_id")
 
 @app.route("/spotify-login")
 def spotifylogin():
@@ -77,6 +82,13 @@ def generatePlaylistFromAppleMusicData(playlistID):
     if not token_info:
         return redirect("/spotify-login")
     
+@app.route("/data/<playlistID>")
+def serveJSONData(playlistID):
+    full_path = os.path.join(AM_DIRECTORY, playlistID)
+    print(f"Requested path: {playlistID}, full_path: {full_path}, isfile: {os.path.isfile(full_path)}")
+    if playlistID and os.path.isfile(full_path):
+        return send_from_directory(AM_DIRECTORY, playlistID)
+    return "Data does not exist."
 
 
 # Path for main SvelteKit stuff
