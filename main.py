@@ -6,7 +6,7 @@ import os
 import requests
 import threading
 from dotenv import load_dotenv
-from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyOAuth
 from socket import gethostname
 
 # load custom modules
@@ -19,25 +19,12 @@ client_secret = os.getenv("CLIENT_SECRET")
 
 
 # Set up Spotify auth variables
-HOST = gethostname()
+HOST = "127.0.0.1" #TODO: change this to proper IP
 scope = "playlist-modify-private"
-redirect_uri = f"https://{HOST}:3000/callback"
+redirect_uri = f"https://{HOST}:5000/callback"
 
 # Create object to manage Spotify authorization with OAuth2
-authm = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
-# Create Spotify API access object, with said authorization manager.
-sp = spotipy.Spotify(auth_manager=authm)
-
-# SPOTIPY TEST CODE
-#playlists = sp.user_playlists('wildertunes')
-#while playlists:
-#    for i, playlist in enumerate(playlists['items']):
-#        print(f"{i + 1 + playlists['offset']:4d} {playlist['uri']} {playlist['name']}")
-#    if playlists['next']:
-#        playlists = sp.next(playlists)
-#    else:
-#        playlists = None
-
+authm = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
