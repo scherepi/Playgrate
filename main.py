@@ -3,7 +3,7 @@ import spotipy
 import spotipy.util as util
 import spotipy.oauth2
 import os
-import requests
+import json
 import threading
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
@@ -76,11 +76,35 @@ def callback():
     print("Set token, reading: " + session.get("token_info", None)["access_token"])
     return "Token should be set!"
 
-@app.route("/generateAM/<playlistID>")
+@app.route("/generateAM/")
 def generatePlaylistFromAppleMusicData(playlistID):
     token_info = session.get("token_info", None)
     if not token_info:
         return redirect("/spotify-login")
+    
+    playlist_id = session.get("scraped_playlist_id")
+    if not playlist_id:
+        return redirect("/")
+
+    def createPlaylistFromJSON():
+        #TODO: set up handling for songs that exist on one platform but not another
+        sp = spotipy.Spotify(auth=token_info["access_token"])
+
+        user = sp.current_user()
+
+        with open(os.path.join(AM_DIRECTORY, playlist_id) + ".json", "r") as playlistFile:
+            playlist_dictionary = json.load(playlistFile)
+            playlist = sp.user_playlist_create(user['id'], name=playlist_dictionary['name'], public=False, description='Ported with Playgrate')
+            for position, song in playlist_dictionary['songs'].items():
+                track_results = sp.search(song['name'], type="track", limit=3)
+                if len(track_results['tracks']['items']) > 0:
+                    for track in track_results['tracks']['items']:
+                        if track['name'] == song['name'] and track['artists'][0]['name'] == song['artist']:
+                            sp.user_playlist_add_tracks(track['uri'])
+                            break
+
+
+
     
 @app.route("/data/<playlistID>")
 def serveJSONData(playlistID):
