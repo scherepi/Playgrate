@@ -39,7 +39,15 @@
         font-family: Arial, Helvetica, sans-serif;
         color: #0e1111;
     }
+    a {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 250%;
+        height: 100%;
+    }
 </style>
 <div>
-    <h2>{username}</h2>
+    <a href="/spotify-login"><h2>{username}</h2></a>
 </div>
