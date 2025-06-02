@@ -1,16 +1,16 @@
 <div id="box">
-    <h1>Playgrate</h1>
+    <h1 id="title">Playgrate</h1>
+    <h2 id="subtitle">It shouldn't be so hard.</h2>
 </div>
 
 <style>
     #box {
         padding: 10px;
-        background-color: red;
+        background-color: rgb(250, 125, 125);
         border: 10px black dotted;
         position: center;
     }
     h1 {
-        position: center;
         flex: auto;
         color: white;
     }
