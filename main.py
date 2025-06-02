@@ -19,8 +19,8 @@ client_secret = os.getenv("CLIENT_SECRET")
 
 
 # Set up Spotify auth variables
-HOST = "127.0.0.1" #TODO: change this to proper IP
-scope = "playlist-modify-private" # This scope lets us create and modify playlists
+HOST = "127.0.0.1" #TODO: change this to proper IP on deployment
+scope = "playlist-modify-private" # This Spotify permission scope lets us ask for the ability to create and modify playlists on behalf of the end-user
 redirect_uri = f"http://{HOST}:5000/callback" # This'll be really annoying to modify when I ship... whatever I'll worry about it later
 
 # Create object to manage Spotify authorization with OAuth2
@@ -63,6 +63,16 @@ def returnAppleMusicPlaylist():
 def test_session():
     return session.get("scraped_playlist_id")
 
+# Returns the active spotify display name, if the user is logged in.
+@app.route("/spotify-id")
+def returnSpotifyID():
+    token_info = session.get("token_info", None)
+    if not token_info:
+        return "U0VTU0lPTk5PVFNFVA=="
+    sp = spotipy.Spotify(auth=token_info["access_token"])
+    user = sp.current_user()
+    return user['display_name']
+
 @app.route("/spotify-login")
 def spotifylogin():
     auth_url = oauth_manager.get_authorize_url()
@@ -100,7 +110,7 @@ def generatePlaylistFromAppleMusicData(playlistID):
                 if len(track_results['tracks']['items']) > 0:
                     for track in track_results['tracks']['items']:
                         if track['name'] == song['name'] and track['artists'][0]['name'] == song['artist']:
-                            sp.user_playlist_add_tracks(track['uri'])
+                            sp.user_playlist_add_tracks(playlist['id'], track['uri'])
                             break
 
 
