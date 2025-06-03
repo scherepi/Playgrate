@@ -4,6 +4,7 @@
     import URLBox from "$lib/URLBox.svelte"
 </script>
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200..900;1,200..900&display=swap');
     #main-container {
         display: flex;
         flex-direction: column;
@@ -11,10 +12,21 @@
         align-items: center;
         margin: 0;
         padding: 0;
-        background-color: rgb(243, 209, 164);
+        background-image: linear-gradient(0deg, rgb(243, 209, 164), rgb(126, 72, 21) 60%, rgb(243, 209, 164));
         min-height: 100vh;
         width: 100vw;
         box-sizing: border-box;
+    }
+    #request {
+        margin-top: 25px;
+        border-radius: 25px;
+        border: 2px black solid;
+        background-image: radial-gradient(rgb(66, 190, 190), lightblue)
+    }
+    h4 {
+        font-family: 'Crimson Pro', serif;
+        margin-left: 10px;
+        margin-right: 10px;
     }
 </style>
 <SpotifyBadge --color="#26eb6b"/>
@@ -26,4 +38,7 @@
     <br>
     <br>
     <URLBox />
+    <div id="request">
+        <h4>Please do not close the tab once started!</h4>
+    </div>
 </div>

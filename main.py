@@ -7,7 +7,8 @@ import json
 import threading
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
-from socket import gethostname
+from spotipy.exceptions import SpotifyException
+
 
 # load custom modules (for scraping the various music services)
 from apple_music import scrapePlaylist as scrapeAppleMusicPlaylist
@@ -75,12 +76,14 @@ def returnAppleMusicPlaylist():
         print("User inputted malformed URL")
         return redirect("/")
     def onceFinished():
-
-        return redirect("/loading")
+        print("Finished scraping playlist " + playlist_id)
+        scrapes_in_progress.remove(playlist_id)
+        return redirect("/generateAM")
     t = ScrapeThread(playlistURL, returnIfMalformatted, onceFinished)
     t.start()
+    scrapes_in_progress.append(playlist_id)
     print("Stored playlist id " + session.get("scraped_playlist_id"))
-    return jsonify({"status": "started"}), 202
+    return redirect("/loading")
 
 @app.route("/scraped-playlist-id")
 def test_session():
@@ -121,24 +124,28 @@ def generatePlaylistFromAppleMusicData():
 
     def createPlaylistFromJSON():
         #TODO: set up handling for songs that exist on one platform but not another
-        sp = spotipy.Spotify(auth=token_info["access_token"])
+        try:
+            sp = spotipy.Spotify(auth=token_info["access_token"])
 
-        user = sp.current_user()
+            user = sp.current_user()
 
-        with open(os.path.join(AM_DIRECTORY, playlist_id) + ".json", "r") as playlistFile:
-            playlist_dictionary = json.load(playlistFile)
-            playlist = sp.user_playlist_create(user['id'], name=playlist_dictionary['name'], public=False, description='Ported with Playgrate')
-            for song in playlist_dictionary['songs'].values():
-                album = song['album']
-                if "- Single" in album:
-                    album = album[0:-9] # Use a slice to quickly cut out problematic difference in data
-                track_results = sp.search(f"{song['name']} artist:{song['artist']}", type="track", limit=10)
-                if len(track_results['tracks']['items']) > 0:
-                    for track in track_results['tracks']['items']:
-                        # Probably best to err on the side of adding too many results
-                        if track['name'].lower() == song['name'].lower() and track['album']['name'].lower() == album.lower():
-                            sp.user_playlist_add_tracks(playlist['id'], track['uri'])
-                            break
+            with open(os.path.join(AM_DIRECTORY, playlist_id) + ".json", "r") as playlistFile:
+                playlist_dictionary = json.load(playlistFile)
+                playlist = sp.user_playlist_create(user['id'], name=playlist_dictionary['name'], public=False, description='Ported with Playgrate')
+                for song in playlist_dictionary['songs'].values():
+                    album = song['album']
+                    if "- Single" in album:
+                        album = album[0:-9] # Use a slice to quickly cut out problematic difference in data
+                    track_results = sp.search(f"{song['name']} artist:{song['artist']}", type="track", limit=10)
+                    if len(track_results['tracks']['items']) > 0:
+                        for track in track_results['tracks']['items']:
+                            # Probably best to err on the side of adding too many results
+                            if track['name'].lower() == song['name'].lower() and track['album']['name'].lower() == album.lower():
+                                sp.user_playlist_add_tracks(playlist['id'], track['uri'])
+                                break
+        except SpotifyException:
+            return redirect("/")
+            
     t = threading.Thread(target=createPlaylistFromJSON)
     t.start()
     return redirect("/finished")

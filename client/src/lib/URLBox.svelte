@@ -36,7 +36,7 @@
         border-radius: 25px;
         font-size: 2em;
         font-family: 'Helvetica Neue', serif;
-        color: #fff;
+        color: #000;
     }
 </style>
 <div>
@@ -44,7 +44,7 @@
     id="url-input"
     type="url"
     bind:value={url}
-    placeholder="https://music.apple.com/your-playlist-id"
+    placeholder="https://music.apple.com/your-playlist"
 />
 <button onclick={submit}>Migrate!</button>
 </div>

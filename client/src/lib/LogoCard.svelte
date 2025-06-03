@@ -1,6 +1,6 @@
 <div id="box">
     <h1 id="title">Playgrate</h1>
-    <h2 id="subtitle">It shouldn't be so hard.</h2>
+    <h2 id="subtitle">Transferring playlists shouldn't be so hard.</h2>
 </div>
 
 <style>
