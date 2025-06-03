@@ -12,7 +12,7 @@
         align-items: center;
         margin: 0;
         padding: 0;
-        background-image: linear-gradient(0deg, rgb(243, 209, 164), rgb(126, 72, 21) 60%, rgb(243, 209, 164));
+        background-image: radial-gradient(rgb(126, 72, 21), rgb(243, 209, 164));
         min-height: 100vh;
         width: 100vw;
         box-sizing: border-box;

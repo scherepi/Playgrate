@@ -5,6 +5,7 @@ import spotipy.oauth2
 import os
 import json
 import threading
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy.exceptions import SpotifyException
@@ -18,7 +19,8 @@ class ScrapeThread(threading.Thread):
     def __init__(self, playlistURL, onFailure=None, onFinished=None):
         super().__init__()
         self.playlistURL = playlistURL
-        self.callback = callback
+        self.onFailure = onFailure
+        self.onFinished = onFinished
 
     def run(self):
         scrapeTuple = ()
@@ -65,10 +67,14 @@ if not os.path.isdir(AM_DIRECTORY):
     os.makedirs(AM_DIRECTORY, exist_ok=True)
 
 scrapes_in_progress = []
+scrapes_lock = threading.Lock()
 
 @app.route("/start-scrape/apple-music/")
 def returnAppleMusicPlaylist():
     playlistURL = request.args.get('playlistURL')
+    parse = urlparse(playlistURL)
+    if (parse.hostname != "music.apple.com" or "/playlist/" not in parse.path):
+        return redirect("/")
     playlist_id = playlistURL.split("/")[-1]
     print("Got playlist id " + playlist_id)
     session['scraped_playlist_id'] = playlist_id
@@ -77,13 +83,26 @@ def returnAppleMusicPlaylist():
         return redirect("/")
     def onceFinished():
         print("Finished scraping playlist " + playlist_id)
-        scrapes_in_progress.remove(playlist_id)
+        with scrapes_lock:
+            scrapes_in_progress.remove(playlist_id)
         return redirect("/generateAM")
     t = ScrapeThread(playlistURL, returnIfMalformatted, onceFinished)
     t.start()
-    scrapes_in_progress.append(playlist_id)
+    with scrapes_lock:
+        scrapes_in_progress.append(playlist_id)
     print("Stored playlist id " + session.get("scraped_playlist_id"))
     return redirect("/loading")
+
+@app.route("/check-thread/<playlist_id>")
+def checkThread(playlist_id):
+    with scrapes_lock:
+        in_progress = playlist_id in scrapes_in_progress
+    if in_progress:
+        print(f"Playlist id {playlist_id} is not done and in array.")
+        return jsonify({"response": "Not done"})
+    else:
+        print(f"Playlist id {playlist_id} is done!")
+        return jsonify({"response":"Done"})
 
 @app.route("/scraped-playlist-id")
 def test_session():
@@ -131,18 +150,41 @@ def generatePlaylistFromAppleMusicData():
 
             with open(os.path.join(AM_DIRECTORY, playlist_id) + ".json", "r") as playlistFile:
                 playlist_dictionary = json.load(playlistFile)
-                playlist = sp.user_playlist_create(user['id'], name=playlist_dictionary['name'], public=False, description='Ported with Playgrate')
+                playlist = sp.user_playlist_create(user['id'], name=playlist_dictionary['name'], public=False, description='Ported with Playgrate. Review for errors!')
                 for song in playlist_dictionary['songs'].values():
                     album = song['album']
+
+                    # ======= CLEANING ALBUM DATA =======
                     if "- Single" in album:
                         album = album[0:-9] # Use a slice to quickly cut out problematic difference in data
-                    track_results = sp.search(f"{song['name']} artist:{song['artist']}", type="track", limit=10)
+                    
+                    if "feat" in album:
+                        slice_index = album.rfind("feat") - 2
+                        album = album[0:slice_index]
+                    # repeat for songs...
+                    song_name = song['name']
+                    if "- Single" in song_name:
+                        song_name = song_name[0:-9] # Use a slice to quickly cut out problematic difference in data
+                    
+                    if "feat" in song_name:
+                        slice_index = song_name.rfind("feat") - 2
+                        song_name = song_name[0:slice_index]
+                    
+                    print(f"Search query: {song_name} artist:{song['artist']}")
+                    track_results = sp.search(f"{song_name} artist:{song['artist']}", type="track", limit=20)
+                    added = False # As a fallback, we're just gonna add the first result if we can't find anything else.
                     if len(track_results['tracks']['items']) > 0:
                         for track in track_results['tracks']['items']:
                             # Probably best to err on the side of adding too many results
-                            if track['name'].lower() == song['name'].lower() and track['album']['name'].lower() == album.lower():
-                                sp.user_playlist_add_tracks(playlist['id'], track['uri'])
+                            if song_name.lower() in track['name'].lower() and album.lower() in track['album']['name'].lower():
+                                print(f"Found track {track['name']}")
+                                sp.playlist_add_items(playlist['id'], [track['uri']])
+                                added = True
                                 break
+                        if not added:
+                            first_result = track_results['tracks']['items'][0]['name']
+                            print(f"No close match for {song['name']}, adding first result {first_result}")
+                            sp.playlist_add_items(playlist['id'], [track_results['tracks']['items'][0]['uri']])
         except SpotifyException:
             return redirect("/")
             
@@ -174,5 +216,5 @@ def catch_all(path):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True)
 
