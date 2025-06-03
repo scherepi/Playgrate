@@ -19,7 +19,7 @@ client_secret = os.getenv("CLIENT_SECRET")
 
 
 # Set up Spotify auth variables
-HOST = "127.0.0.1" #TODO: change this to proper IP on deployment
+HOST = os.getenv("CLIENT_IP") #TODO: change this to proper IP on deployment
 scope = "playlist-modify-private" # This Spotify permission scope lets us ask for the ability to create and modify playlists on behalf of the end-user
 redirect_uri = f"http://{HOST}:5000/callback" # This'll be really annoying to modify when I ship... whatever I'll worry about it later
 
@@ -84,7 +84,7 @@ def callback():
     token_info = oauth_manager.get_access_token(request.args['code'])
     session['token_info'] = token_info
     print("Set token, reading: " + session.get("token_info", None)["access_token"])
-    return "Token should be set!"
+    return redirect("/")
 
 @app.route("/generateAM/")
 def generatePlaylistFromAppleMusicData(playlistID):
@@ -137,5 +137,5 @@ def catch_all(path):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
 

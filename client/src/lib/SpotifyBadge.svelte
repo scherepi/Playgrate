@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
+
     let username = $state("Login!")
     async function getSpotifyId() {
         const retrieval_url = "/spotify-id"
@@ -13,6 +15,10 @@
             username = "Login!"
         }
     }
+    
+    onMount(async () => {
+        getSpotifyId()
+    })
 </script>
 <style>
     div {
@@ -49,5 +55,5 @@
     }
 </style>
 <div>
-    <a href="/spotify-login"><h2>{username}</h2></a>
+    <a href="/spotify-login"><h2 id="username">{username}</h2></a>
 </div>
