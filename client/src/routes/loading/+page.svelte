@@ -36,7 +36,7 @@
         // We're gonna continually check for whether the playlist is done scraping.
         await checkForThread();
         if (threadFinished) {
-            window.location.href = "/finished"
+            window.location.href = "/generateAM"
         }
     }, 2400)
     

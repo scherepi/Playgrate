@@ -141,7 +141,7 @@ def generatePlaylistFromAppleMusicData():
     if not playlist_id:
         return redirect("/")
 
-    def createPlaylistFromJSON():
+    def createPlaylistFromJSON(token_info, playlist_id):
         #TODO: set up handling for songs that exist on one platform but not another
         try:
             sp = spotipy.Spotify(auth=token_info["access_token"])
@@ -185,10 +185,10 @@ def generatePlaylistFromAppleMusicData():
                             first_result = track_results['tracks']['items'][0]['name']
                             print(f"No close match for {song['name']}, adding first result {first_result}")
                             sp.playlist_add_items(playlist['id'], [track_results['tracks']['items'][0]['uri']])
-        except SpotifyException:
-            return redirect("/")
+        except Exception as e:
+            print(f"Exception in playlist creation thread: {e}")
             
-    t = threading.Thread(target=createPlaylistFromJSON)
+    t = threading.Thread(target=createPlaylistFromJSON, args=(token_info, playlist_id))
     t.start()
     return redirect("/finished")
 
