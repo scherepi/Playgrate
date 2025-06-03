@@ -14,22 +14,24 @@ from apple_music import scrapePlaylist as scrapeAppleMusicPlaylist
 
 # Custom thread subclasses (for callbacks), thanks Copilot for the help
 class ScrapeThread(threading.Thread):
-    def __init__(self, playlistURL, callback=None):
+    def __init__(self, playlistURL, onFailure=None, onFinished=None):
         super().__init__()
         self.playlistURL = playlistURL
         self.callback = callback
 
     def run(self):
-        scrapeTuple = scrapeAppleMusicPlaylist(self.playlistURL)
+        scrapeTuple = ()
+        try:
+            scrapeTuple = scrapeAppleMusicPlaylist(self.playlistURL)
+        except ValueError:
+            self.onFailure()
+            return
         playlist_id = scrapeTuple[0]
         playlist_json = scrapeTuple[1]
         with open(os.path.join(AM_DIRECTORY, playlist_id + ".json"), "w") as destination_file:
             destination_file.write(playlist_json)
-        if self.callback:
-            self.callback()
-    
-    def on_scrape_finished(self):
-        print("Finished scraping playlist " + self.playlistURL)
+        if self.onFinished:
+            self.onFinished()
 
 
 # Load environmental variables
@@ -61,18 +63,26 @@ AM_DIRECTORY = os.path.join(os.path.dirname(__file__), "data", "scrapes", "apple
 if not os.path.isdir(AM_DIRECTORY):
     os.makedirs(AM_DIRECTORY, exist_ok=True)
 
+scrapes_in_progress = []
+
 @app.route("/start-scrape/apple-music/")
 def returnAppleMusicPlaylist():
     playlistURL = request.args.get('playlistURL')
     playlist_id = playlistURL.split("/")[-1]
     print("Got playlist id " + playlist_id)
     session['scraped_playlist_id'] = playlist_id
-    t = ScrapeThread(playlistURL)
+    def returnIfMalformatted():
+        print("User inputted malformed URL")
+        return redirect("/")
+    def onceFinished():
+
+        return redirect("/loading")
+    t = ScrapeThread(playlistURL, returnIfMalformatted, onceFinished)
     t.start()
     print("Stored playlist id " + session.get("scraped_playlist_id"))
     return jsonify({"status": "started"}), 202
 
-@app.route("/test-session")
+@app.route("/scraped-playlist-id")
 def test_session():
     return session.get("scraped_playlist_id")
 
@@ -99,8 +109,8 @@ def callback():
     print("Set token, reading: " + session.get("token_info", None)["access_token"])
     return redirect("/")
 
-@app.route("/generateAM/")
-def generatePlaylistFromAppleMusicData(playlistID):
+@app.route("/generateAM")
+def generatePlaylistFromAppleMusicData():
     token_info = session.get("token_info", None)
     if not token_info:
         return redirect("/spotify-login")
@@ -118,13 +128,20 @@ def generatePlaylistFromAppleMusicData(playlistID):
         with open(os.path.join(AM_DIRECTORY, playlist_id) + ".json", "r") as playlistFile:
             playlist_dictionary = json.load(playlistFile)
             playlist = sp.user_playlist_create(user['id'], name=playlist_dictionary['name'], public=False, description='Ported with Playgrate')
-            for position, song in playlist_dictionary['songs'].items():
-                track_results = sp.search(song['name'], type="track", limit=3)
+            for song in playlist_dictionary['songs'].values():
+                album = song['album']
+                if "- Single" in album:
+                    album = album[0:-9] # Use a slice to quickly cut out problematic difference in data
+                track_results = sp.search(f"{song['name']} artist:{song['artist']}", type="track", limit=10)
                 if len(track_results['tracks']['items']) > 0:
                     for track in track_results['tracks']['items']:
-                        if track['name'] == song['name'] and track['artists'][0]['name'] == song['artist']:
+                        # Probably best to err on the side of adding too many results
+                        if track['name'].lower() == song['name'].lower() and track['album']['name'].lower() == album.lower():
                             sp.user_playlist_add_tracks(playlist['id'], track['uri'])
                             break
+    t = threading.Thread(target=createPlaylistFromJSON)
+    t.start()
+    return redirect("/finished")
 
 
 
