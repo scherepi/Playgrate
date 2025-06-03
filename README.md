@@ -14,6 +14,6 @@ My personal playlist has reached 80 hours of music already, so I know that, if I
 - [X] Integrate Svelte with Flask
 - [X] Make underlying back-end modules (need to interface with Apple Music first)
 - [X] Design and implement user interface
-- [ ] Weave together front and back end
+- [X] Weave together front and back end
 - [ ] User testing
 - [ ] Deploy!
