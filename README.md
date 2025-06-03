@@ -1,4 +1,5 @@
 # PLAYGRATE: *IT SHOULDN'T BE SO DAMN HARD*.
+![Hackatime embed](https://hackatime-badge.hackclub.com/U083W5CCFDG/Playgrate)
 
 Playgrate is a web app built using Svelte, Flask, Spotipy, BeautifulSoup, and a few other tools that simplifies transferring your playlists between popular music services (Spotify, Apple Music, the likes). 
 
@@ -11,8 +12,8 @@ My personal playlist has reached 80 hours of music already, so I know that, if I
 
 ### CURRENT PROJECT GOALS:
 - [X] Integrate Svelte with Flask
-- [ ] Make underlying back-end modules (need to interface with Apple Music first)
-- [ ] Design and implement user interface
+- [X] Make underlying back-end modules (need to interface with Apple Music first)
+- [X] Design and implement user interface
 - [ ] Weave together front and back end
 - [ ] User testing
 - [ ] Deploy!
