@@ -12,6 +12,26 @@ from socket import gethostname
 # load custom modules (for scraping the various music services)
 from apple_music import scrapePlaylist as scrapeAppleMusicPlaylist
 
+# Custom thread subclasses (for callbacks), thanks Copilot for the help
+class ScrapeThread(threading.Thread):
+    def __init__(self, playlistURL, callback=None):
+        super().__init__()
+        self.playlistURL = playlistURL
+        self.callback = callback
+
+    def run(self):
+        scrapeTuple = scrapeAppleMusicPlaylist(self.playlistURL)
+        playlist_id = scrapeTuple[0]
+        playlist_json = scrapeTuple[1]
+        with open(os.path.join(AM_DIRECTORY, playlist_id + ".json"), "w") as destination_file:
+            destination_file.write(playlist_json)
+        if self.callback:
+            self.callback()
+    
+    def on_scrape_finished(self):
+        print("Finished scraping playlist " + self.playlistURL)
+
+
 # Load environmental variables
 load_dotenv()
 client_id = os.getenv("CLIENT_ID")
@@ -47,14 +67,7 @@ def returnAppleMusicPlaylist():
     playlist_id = playlistURL.split("/")[-1]
     print("Got playlist id " + playlist_id)
     session['scraped_playlist_id'] = playlist_id
-    def run_scrape():
-        scrapeTuple = scrapeAppleMusicPlaylist(playlistURL)
-        playlist_id = scrapeTuple[0]
-        playlist_json = scrapeTuple[1]
-        with open(os.path.join(AM_DIRECTORY, playlist_id + ".json"), "w") as destination_file:
-            destination_file.write(playlist_json)
-
-    t = threading.Thread(target=run_scrape)
+    t = ScrapeThread(playlistURL)
     t.start()
     print("Stored playlist id " + session.get("scraped_playlist_id"))
     return jsonify({"status": "started"}), 202

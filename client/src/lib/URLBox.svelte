@@ -23,6 +23,7 @@
         font-size: 30px;
         border-radius: 25px;
         padding-left: 10px;
+        margin-right: 8px;
     }
     div {
         display: flex;
