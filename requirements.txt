@@ -1,0 +1,5 @@
+flask
+spotipy
+urllib
+bs4
+requests
