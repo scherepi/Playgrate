@@ -43,10 +43,14 @@ client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 
 
+
 # Set up Spotify auth variables
-HOST = os.getenv("CLIENT_IP") #TODO: change this to proper IP on deployment
 scope = "playlist-modify-private" # This Spotify permission scope lets us ask for the ability to create and modify playlists on behalf of the end-user
-redirect_uri = f"http://{HOST}:5000/callback" # This'll be really annoying to modify when I ship... whatever I'll worry about it later
+# Use SPOTIFY_REDIRECT_URI from environment, fallback to old method for dev
+redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI")
+if not redirect_uri:
+    HOST = os.getenv("CLIENT_IP", "localhost")
+    redirect_uri = f"http://{HOST}:5000/callback"
 
 # Create object to manage Spotify authorization with OAuth2
 oauth_manager = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
