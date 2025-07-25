@@ -7,7 +7,7 @@ import json
 import threading
 from urllib.parse import urlparse
 from dotenv import load_dotenv
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth, CacheHandler
 from spotipy.exceptions import SpotifyException
 
 
@@ -53,8 +53,21 @@ if not redirect_uri:
     redirect_uri = f"http://{HOST}:5000/callback"
 
 
-# Create object to manage Spotify authorization with OAuth2 (no cache handler, session only)
-oauth_manager = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
+
+# Custom Spotipy cache handler using Flask session
+class SessionCacheHandler(CacheHandler):
+    def get_cached_token(self):
+        return session.get('token_info')
+    def save_token_to_cache(self, token_info):
+        session['token_info'] = token_info
+
+oauth_manager = SpotifyOAuth(
+    client_id=client_id,
+    client_secret=client_secret,
+    redirect_uri=redirect_uri,
+    scope=scope,
+    cache_handler=SessionCacheHandler()
+)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY") # Storing it in an env variable just in case? I don't know how secure it really has to be
