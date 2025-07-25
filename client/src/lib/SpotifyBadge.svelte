@@ -37,7 +37,7 @@
 
         position: absolute;
         top: 3%;
-        right: 10px;
+        right: 1%;
 
         justify-content: center;
     }

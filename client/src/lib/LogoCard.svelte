@@ -1,4 +1,7 @@
-<div id="box">
+<script lang="ts">
+    import { fade } from "svelte/transition";
+</script>
+<div id="box" transition:fade >
     <h1 id="title">Playgrate</h1>
     <h2 id="subtitle">Transferring playlists shouldn't be so hard.</h2>
 </div>
