@@ -52,9 +52,9 @@ if not redirect_uri:
     HOST = os.getenv("CLIENT_IP", "localhost")
     redirect_uri = f"http://{HOST}:5000/callback"
 
-# Create object to manage Spotify authorization with OAuth2
-cache_handler = spotipy.oauth2.CacheFileHandler()
-oauth_manager = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope, cache_handler=cache_handler)
+
+# Create object to manage Spotify authorization with OAuth2 (no cache handler, session only)
+oauth_manager = SpotifyOAuth(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope)
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY") # Storing it in an env variable just in case? I don't know how secure it really has to be
@@ -126,7 +126,7 @@ def returnSpotifyID():
 @app.route("/spotify-login")
 def spotifylogin():
     auth_url = oauth_manager.get_authorize_url()
-    session["token_info"] = oauth_manager.validate_token(oauth_manager.cache_handler.get_cached_token())
+    # Do not set any token in session here; only after callback
     return redirect(auth_url)
 
 @app.route("/callback")
