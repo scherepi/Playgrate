@@ -30,7 +30,7 @@ Unfortunately, because Spotify sucks and hates young devs like me, the only real
 
 NPM is necessary for building the SvelteKit side of things, Python is the actual server. Then, <i style="color:lightblue">clone this repo.</i>
 ### Step 1: Get your API keys
-You'll need to go to the <a href="https://developer.spotify.com/dashboard">Spotify developer dashboard</a> and generate some keys for the API. Log into your Spotify account and go through the process for creating a new app. <i style="color:lightblue">Name it whatever you want.</i> Then, click on your new app in the dashboard. Make a new file in the project's root directory called .env, and copy your app's Client ID and Client Secret in the following format:
+You'll need to go to the <a href="https://developer.spotify.com/dashboard">Spotify developer dashboard</a> and generate some keys for the API. Log into your Spotify account and go through the process for creating a new app. <i style="color:lightblue">Name it whatever you want.</i> Then, click on your new app in the dashboard. Make a new file in the project's root directory called `.env`, and copy your app's Client ID and Client Secret in the following format:
 
 ``````
 CLIENT_ID="your-client-id-here"
