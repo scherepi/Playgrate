@@ -84,7 +84,14 @@
         font-size: 100px;
         margin-bottom: 10px;
     }
+    p {
+        font-family: 'Crimson Pro', serif;
+        color: #3f024f;
+        font-size: 40px;
+        margin-top: 10px;
+    }
 </style>
 <div>
     <h1>{message}</h1>
+    <p>Please don't close out of the tab!</p>
 </div>

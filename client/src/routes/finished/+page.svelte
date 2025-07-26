@@ -29,5 +29,6 @@
 </style>
 <div>
     <h1>You should be done!</h1>
-    <p>Please be patient while the system generates your playlist - it can take a while.</p>
+    <p>You're welcome to close out of the tab now. We've got everything we need from you!</p>
+    <p>Please be patient while the system generates your playlist - it can take a while, depending on how big it is.</p>
 </div>
